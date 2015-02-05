@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+    <title>Leaflet base example</title>
+    <meta charset="utf-8">
+
+    <style>
+        
+        #map {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            background-color: #333;
+        }
+    </style>
+
+</head>
+<body>
+    <h1>Leaflet base example</h1>
+    <div id="map"></div>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="../../js/data.js" charset="utf-8"></script>
+
+
+    <script>
+        var points = data;
+        var map = L.map('map').setView([39.56, -7.85], 7);
+        L.tileLayer("http://{s}.tiles.mapbox.com/v3/esm1503.l25hfkf1/{z}/{x}/{y}.png")
+            .addTo(map);
+
+        var marker = L.marker([]).addTo(map);    
+    </script>
+</body>
+</html>
