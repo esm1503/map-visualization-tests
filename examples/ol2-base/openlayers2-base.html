@@ -23,10 +23,10 @@
 			var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
 
 			for (var i=0; i<data.length; i++){
-				var lon = data[i][0];
-				var lat = data[i][1];
+				var lat = data[i][0];
+				var lon = data[i][1];
 				var feature = new OpenLayers.Feature.Vector(
-					new OpenLayers.Geometry.Point( lat, lon ),
+					new OpenLayers.Geometry.Point( lon, lat ),
                 	{description: "marker number " + i} ,
                 	{externalGraphic: 'img/marker.png', graphicHeight: 25, graphicWidth: 21, graphicXOffset:-12, graphicYOffset:-25  }
 				);
