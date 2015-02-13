@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+    <title>Leaflet canvas example</title>
+    <meta charset="utf-8">
+
+    <style>
+        
+        #map {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            background-color: #333;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="map"></div>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="js/L.CanvasOverlay.js"></script>
+    <script src="../../js/data.js" charset="utf-8"></script>
+
+
+    <script>
+
+        var points = data;
+        var leafletMap = L.map('map').setView([39.56, -7.85], 7);
+        L.tileLayer("http://{s}.tiles.mapbox.com/v3/esm1503.l25hfkf1/{z}/{x}/{y}.png")
+            .addTo(leafletMap);
+
+        L.canvasOverlay()
+            .drawing(drawingOnCanvas)
+            .addTo(leafletMap);
+
+        function drawingOnCanvas(canvasOverlay, params) {
+            var ctx = params.canvas.getContext('2d');
+            ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+            ctx.fillStyle = "rgba(15,86,96, 0.3)";
+            points.map(function (d, i) {
+                if (params.bounds.contains([d[0], d[1]])) {
+                    dot = canvasOverlay._map.latLngToContainerPoint([d[0], d[1]]);
+                    ctx.beginPath();
+                    ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
