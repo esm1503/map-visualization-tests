@@ -18,9 +18,9 @@
 <body>
     <h1>Leaflet base example</h1>
     <div id="map"></div>
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-    <script src="../../js/data.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <script src="leaflet.js"></script>
+    <script src="../../js/data-250.js" charset="utf-8"></script>
 
 
     <script>
@@ -32,7 +32,7 @@
             lat = data[i][0];
             lon = data[i][1];
             marker = new L.marker([lat, lon]).addTo(map);
-            marker.bindPopup(lat + ', ' + lon);
+            // marker.bindPopup(lat + ', ' + lon);
         };
     </script>
 </body>
