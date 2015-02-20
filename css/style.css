@@ -18,7 +18,8 @@ ul {
 li{
   margin: 10px 0;
 }
-a {
+li a {
+	color: #336666;
 	text-decoration: none;
 }
 a:hover{

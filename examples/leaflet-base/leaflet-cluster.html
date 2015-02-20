@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+    <title>Leaflet - Clustering</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <script src="leaflet.js"></script>
+    <link href='css/MarkerCluster.css' rel='stylesheet' />
+    <link href='css/MarkerCluster.Default.css' rel='stylesheet' />
+     <script src='js/leaflet.markercluster.js'></script>
+    <link type="text/css" rel="stylesheet" href="../../css/style.css" />
+</head>
+<body>
+    <h1>Leaflet - Clustering</h1>
+    <div id="map"></div>
+    <script src="../../js/data.js" charset="utf-8"></script>
+    <script>
+        var tiles = L.tileLayer('http://{s}.tiles.mapbox.com/v3/esm1503.l25hfkf1/{z}/{x}/{y}.png', {
+                maxZoom: 18 
+            }),
+            latlng = L.latLng(39.56, -7.85);
+
+        var map = L.map('map', {center: latlng, zoom: 8, layers: [tiles]});
+
+        var markers = L.markerClusterGroup({showCoverageOnHover: false, disableClusteringAtZoom: 17 });
+        
+        for (var i = 0; i < data.length; i++) {
+            var lat = data[i][0];
+            var lon = data[i][1];
+            var marker = L.marker(L.latLng(lat, lon));
+            markers.addLayer(marker);
+        }
+
+        map.addLayer(markers);
+
+      </script>
+</body>
+</html>
