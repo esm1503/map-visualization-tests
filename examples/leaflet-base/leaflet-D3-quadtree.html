@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+<head>
+ <title>Leaflet and D3</title>
+ <meta charset="utf-8">
+ 
+<style>
+    body {
+        font-size: 12px;
+    }
+
+    text {
+        fill: white;
+    }
+
+    svg {
+        position: relative;
+    }
+
+    path {
+        fill: #0022ff;
+        fill-opacity: .2;
+    }
+
+    path:hover {
+            fill: #00ff22;
+            fill-opacity: .7;
+            stroke: #00ff22;
+            stroke-width: 5;
+
+        }
+
+    #map {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: #333;
+        
+    }
+
+   
+</style>
+
+</head>
+<body>
+    <div id="map"></div>
+    <div id="tooltip">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100px" height="100px" />
+    </div>
+
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <script src="leaflet.js"></script>
+
+    <script src="js/d3.min.js" charset="utf-8"></script>
+
+    <script>
+        d3.csv('dataPoints.csv', function (error, incidents) {
+
+            function reformat(array) {
+                var data = [];
+                array.map(function (d, i) {
+
+                    data.push({
+                        id: i,
+                        type: "Feature",
+                        geometry: {
+                            coordinates: [+d.longitude, +d.latitude],
+                            type: "Point"
+                        }
+                       
+
+                    });
+                });
+                return data;
+            }
+            var geoData = { type: "FeatureCollection", features: reformat(incidents) };
+
+            var qtree = d3.geom.quadtree(geoData.features.map(function (data, i) {
+                return {
+                    x: data.geometry.coordinates[0],
+                    y: data.geometry.coordinates[1],
+                    all: data
+                };
+            }));
+
+            function search(quadtree, x0, y0, x3, y3) {
+                var points = [];
+                quadtree.visit(function(node, x1, y1, x2, y2) {
+                var p = node.point;
+                    if (p) {
+                        points.push(p.all);
+                    }
+                    return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
+              });
+              return points;
+            }
+
+            function cluster(quadtree, x0, y0, x3, y3){
+                var clusterPoints = [];
+                var clusterRange = (x3 - x0) / 8;
+
+                for (var x = x0; x <= x3; x += clusterRange) {
+                    for (var y = y0; y <= y3; y+= clusterRange) {
+                        var searched = search(quadtree, x, y, x + clusterRange, y + clusterRange);
+
+                        var centerPoint = searched.reduce(function(prev, current) {
+                            return {
+                                geometry: {
+                                    coordinates: [
+                                        prev.geometry.coordinates[0] + current.geometry.coordinates[0],
+                                        prev.geometry.coordinates[1] + current.geometry.coordinates[1]
+                                    ],
+                                    type: 'Point'
+                                },
+                                type: 'Feature'
+                            }
+                        }, {
+                            geometry: {
+                                coordinates: [0,0]
+                            }
+                        });
+
+                        centerPoint.geometry.coordinates[0] = centerPoint.geometry.coordinates[0] / searched.length;
+                        centerPoint.geometry.coordinates[1] = centerPoint.geometry.coordinates[1] / searched.length;
+                        centerPoint.pointCount = searched.length;
+
+                        if (centerPoint.geometry.coordinates[0] && centerPoint.geometry.coordinates[1]) {
+                            clusterPoints.push(centerPoint);
+                        }
+                    }
+                }
+                return clusterPoints;
+            }
+         
+            function updateNodes(quadtree) {
+                var nodes = [];
+                quadtree.depth = 0; // root
+
+                quadtree.visit(function (node, x1, y1, x2, y2) {
+                    var nodeRect = {
+                        left: MercatorXofLongitude(x1),
+                        right: MercatorXofLongitude(x2),
+                        bottom: MercatorYofLatitude(y1),
+                        top: MercatorYofLatitude(y2),
+                    }
+                    node.width = (nodeRect.right - nodeRect.left);
+                    node.height = (nodeRect.top - nodeRect.bottom);
+
+                    if (node.depth == 0) {
+                        console.log(" width: " + node.width + "height: " + node.height);
+                    }
+                    nodes.push(node);
+                    for (var i = 0; i < 4; i++) {
+                        if (node.nodes[i]) node.nodes[i].depth = node.depth + 1;
+                    }
+                });
+                return nodes;
+            }
+
+            //-------------------------------------------------------------------------------------
+            MercatorXofLongitude = function (lon) {
+                return lon * 20037508.34 / 180;
+            }
+
+            MercatorYofLatitude = function (lat) {
+                return (Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180)) * 20037508.34 / 180;
+            }
+            var cscale = d3.scale.linear().domain([1, 3]).range(["#ff0000", "#ff6a00", "#ffd800", "#b6ff00", "#00ffff", "#0094ff"]);//"#00FF00","#FFA500"
+            var leafletMap = L.map('map').setView([39.9186, -7.9128], 10);
+
+            L.tileLayer("http://{s}.tiles.mapbox.com/v3/esm1503.l25hfkf1/{z}/{x}/{y}.png").addTo(leafletMap);
+
+
+            var svg = d3.select(leafletMap.getPanes().overlayPane).append("svg");
+            var g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+
+            // Use Leaflet to implement a D3 geometric transformation.
+            function projectPoint(x, y) {
+                var point = leafletMap.latLngToLayerPoint(new L.LatLng(y, x));
+                this.stream.point(point.x, point.y);
+            }
+
+            var transform = d3.geo.transform({ point: projectPoint });
+            var path = d3.geo.path().projection(transform);
+
+
+            updateNodes(qtree);
+
+            leafletMap.on('moveend', mapmove);
+
+            mapmove();
+
+
+
+
+            function getZoomScale() {
+                var mapWidth = leafletMap.getSize().x;
+                var bounds = leafletMap.getBounds();
+                var planarWidth = MercatorXofLongitude(bounds.getEast()) - MercatorXofLongitude(bounds.getWest());
+                var zoomScale = mapWidth / planarWidth;
+                return zoomScale;
+            }
+
+            function redrawSubset(subset) {
+                var maxRadius = 30;
+                var largestCluster = subset.reduce(function(prev, current){
+                        return current.pointCount > prev.pointCount ? current : prev;
+                    },{ pointCount: 0} ); 
+                path.pointRadius(function(feature, i) {
+                    return (feature.pointCount / largestCluster.pointCount) * maxRadius;
+                });// * scale);
+
+                var bounds = path.bounds({ type: "FeatureCollection", features: subset });
+                var topLeft = bounds[0];
+                var bottomRight = bounds[1];
+
+
+                svg.attr("width", bottomRight[0] - topLeft[0])
+                  .attr("height", bottomRight[1] - topLeft[1])
+                  .style("left", topLeft[0] + "px")
+                  .style("top", topLeft[1] + "px");
+
+
+                g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+                var start = new Date();
+
+
+                var points = g.selectAll("path")
+                              .data(subset, function (d) {
+                                  return d.pointCount;
+                              });
+                points.enter().append("path");
+                points.exit().remove();
+                points.attr("d", path);
+
+                console.log("updated at  " + new Date().setTime(new Date().getTime() - start.getTime()) + " ms ");
+
+            }
+
+            function mapmove(e) {
+                var mapBounds = leafletMap.getBounds();
+                var subset = cluster(qtree, mapBounds.getWest(), mapBounds.getSouth(), mapBounds.getEast(), mapBounds.getNorth());
+                console.log("subset: " + subset.length);
+
+                redrawSubset(subset);
+            }
+        });
+    </script>
+</body>
+</html>
