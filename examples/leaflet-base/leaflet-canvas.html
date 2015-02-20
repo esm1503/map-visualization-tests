@@ -1,21 +1,12 @@
 <!doctype html>
 <html>
 <head>
-    <title>Leaflet canvas example</title>
+    <title>Leaflet - Canvas Overlay</title>
     <meta charset="utf-8">
-
-    <style>
-        
-        #map {
-            position: absolute;
-            height: 100%;
-            width: 100%;
-            background-color: #333;
-        }
-    </style>
-
+    <link type="text/css" rel="stylesheet" href="../../css/style.css" />
 </head>
 <body>
+    <h1>Leaflet - Canvas Overlay</h1>
     <div id="map"></div>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
@@ -26,7 +17,7 @@
     <script>
 
         var points = data;
-        var leafletMap = L.map('map').setView([39.56, -7.85], 7);
+        var leafletMap = L.map('map').setView([39.56, -7.85], 8);
         L.tileLayer("http://{s}.tiles.mapbox.com/v3/esm1503.l25hfkf1/{z}/{x}/{y}.png")
             .addTo(leafletMap);
 

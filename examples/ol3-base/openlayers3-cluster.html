@@ -1,94 +1,84 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <title>OpenLayers 3 - Clustering</title>
     <link rel="stylesheet" href="css/ol.css" type="text/css">
-    <style>
-      .map {
-        height: 400px;
-        width: 100%;
-        background-color: #b5d0d0;
-      }
-    </style>
-    
-    <title>OpenLayers3 Cluster</title>
+    <link type="text/css" rel="stylesheet" href="../../css/style.css" />
   </head>
   <body>
-    <h1>OpenLayers3 cluster example</h1>
+    <h1>OpenLayers 3 - Clustering</h1>
     <div id="map" class="map"></div>
 
     <script src="js/ol.js" type="text/javascript"></script>
     <script src="../../js/data.js" type="text/javascript"></script>
 
     <script type="text/javascript">
-     
+       var featureArray = [];
+            for(i=0; i< data.length; i++) {
+                lat = data[i][0];
+                lon = data[i][1];
+                geom = new ol.geom.Point(
+                    ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857')
+                );
+                featurePoint = new ol.Feature(geom);
+                featureArray.push(featurePoint);
+        };
+        
+        function styleFunction(feature, resolution) {
+          var size = feature.get('features').length;
 
- var featureArray = [];
-      for(i=0; i< data.length; i++) {
-          lat = data[i][0];
-          lon = data[i][1];
-          geom = new ol.geom.Point(
-              ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857')
-          );
-          featurePoint = new ol.Feature(geom);
-          featureArray.push(featurePoint);
-};
+            style = [new ol.style.Style({
+              image: new ol.style.Circle({
+                radius: Math.ceil((size / 20) + 10),
+                stroke: new ol.style.Stroke({
+                  color: 'rgba(255,255,255,0.2)',
+                  width: 1
+                }),
+                fill: new ol.style.Fill({
+                  color: 'rgba(51,153,204,0.6)'
+                })
+              }),
+              text: new ol.style.Text({
+                text: size.toString(),
+                fill: new ol.style.Fill({
+                  color: '#fff'
+                })
+              })
+            })];
+          return style;
+        }
 
+        var source = new ol.source.Vector({
+          features: featureArray
+        });
 
-function styleFunction(feature, resolution) {
-    var size = feature.get('features').length;
+        var clusterSource = new ol.source.Cluster({
+          distance: 50,
+          source: source
+        });
 
-      style = [new ol.style.Style({
-        image: new ol.style.Circle({
-          radius: Math.ceil((size / 20) + 10),
-          stroke: new ol.style.Stroke({
-            color: 'rgba(255,255,255,0.2)',
-            width: 1
-          }),
-          fill: new ol.style.Fill({
-            color: 'rgba(51,153,204,0.6)'
+        var clusters = new ol.layer.Vector({
+          source: clusterSource,
+          style: styleFunction
+        });
+
+        var osmLayer = new ol.layer.Tile({
+                source: new ol.source.OSM()
+              });
+
+        var raw = new ol.layer.Vector({
+          source: source
+        });
+
+        var map = new ol.Map({
+          layers: [osmLayer, clusters],
+          renderer: 'canvas',
+          target: 'map',
+          view: new ol.View({
+            center: ol.proj.transform([-8.041992,39.886031], 'EPSG:4326', 'EPSG:3857'),
+            zoom: 9
           })
-        }),
-        text: new ol.style.Text({
-          text: size.toString(),
-          fill: new ol.style.Fill({
-            color: '#fff'
-          })
-        })
-      })];
-    return style;
-  }
-
-var source = new ol.source.Vector({
-  features: featureArray
-});
-
-var clusterSource = new ol.source.Cluster({
-  distance: 50,
-  source: source
-});
-
-var clusters = new ol.layer.Vector({
-  source: clusterSource,
-  style: styleFunction
-});
-
-var osmLayer = new ol.layer.Tile({
-        source: new ol.source.OSM()
-      });
-
-var raw = new ol.layer.Vector({
-  source: source
-});
-
-var map = new ol.Map({
-  layers: [osmLayer, clusters],
-  renderer: 'canvas',
-  target: 'map',
-  view: new ol.View({
-    center: ol.proj.transform([-8.041992,39.886031], 'EPSG:4326', 'EPSG:3857'),
-    zoom: 8
-  })
-});
+        });
     </script>
   </body>
 </html>

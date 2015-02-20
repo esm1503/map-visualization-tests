@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf-8" />
-	<title>OpenLayers2 base test</title>
+	<title>OpenLayers 2 - Baseline</title>
+	<link type="text/css" rel="stylesheet" href="../../css/style.css" />
 	<script type="text/javascript" src='OpenLayers.js'></script>
 	<script type="text/javascript" src='../../js/data.js'></script>
 	<script type="text/javascript">
 		var map;
 		function init (){
-			map = new OpenLayers.Map('map_element', {});	
+			map = new OpenLayers.Map('map', {});	
 			var wms_layer_map = new OpenLayers.Layer.WMS(
 				'Base layer',
 				'http://vmap0.tiles.osgeo.org/wms/vmap0',
@@ -38,15 +39,15 @@
 
 			if(!map.getCenter()){
 				map.setCenter(new OpenLayers.LonLat(-8.041992,39.886031));
-				map.zoomTo(7);
+				map.zoomTo(9);
 			}
 
 		}
 	</script>
 </head>	
 <body onload='init();'>
-	<h1>OpenLayers2 base example</h1>
-	<div id='map_element' style='width: 500px; height: 500px;'>
+	<h1>OpenLayers 2 - Baseline</h1>
+	<div id='map'>
 	</div>
 </body>
 </html>
